@@ -1,16 +1,12 @@
-# 📚 rag-study
+RAG(Retrieval-Augmented Generation) 및 관련 기술 스택 정리
 
-RAG(Retrieval-Augmented Generation) 및 관련 기술 스택을 공부하며 정리한 레포
-
-## 📄 목차
-
-### RAG 개념
+### 🔎 RAG 개념
 | 파일 | 내용 |
 |------|------|
 | [00_what_is_rag.md](docs/rag/00_what_is_rag.md) | RAG 개념, 동작 원리, 세대 분류 |
 | [01_pipeline_components.md](docs/rag/01_pipeline_components.md) | 파이프라인 구성요소 상세 정리 |
 
-### Ragas
+### 📐 Ragas
 | 파일 | 내용 |
 |------|------|
 | [00_overview.md](docs/ragas/00_overview.md) | Ragas 개요 및 빠른 시작 |
@@ -21,7 +17,7 @@ RAG(Retrieval-Augmented Generation) 및 관련 기술 스택을 공부하며 정
 | [05_api_reference.md](docs/ragas/05_api_reference.md) | API 레퍼런스 |
 | [06_learning_plan.md](docs/ragas/06_learning_plan.md) | 학습 로드맵 및 기술 스택 정리 |
 
-### LangChain
+### ✈️ LangChain
 | 파일 | 내용 |
 |------|------|
 | [00_overview.md](docs/langchain/00_overview.md) | LangChain 개요, 생태계, 설치 |
