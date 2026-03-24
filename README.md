@@ -1,3 +1,4 @@
+## rag-study
 RAG(Retrieval-Augmented Generation) 및 관련 기술 스택 정리
 
 ### 🔎 RAG 개념
