@@ -1,7 +1,9 @@
 # RAG 원논문 정리
 
 > Lewis et al. (2020), *"Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks"*
+> 
 > Facebook AI Research / UCL / NYU
+> 
 > arXiv: [2005.11401](https://arxiv.org/abs/2005.11401)
 
 ---
@@ -52,19 +54,14 @@ Non-Parametric Memory = Wikipedia 벡터 인덱스 (외부 문서, 언제든 교
 - 검색된 문서 하나를 전체 출력 시퀀스에 동일하게 사용
 - "이 문서 하나가 전체 답변을 책임진다"는 방식
 
-```
-p_RAG-Seq(y|x) ≈ Σ p(z|x) · p(y|x, z)
-                  z∈top-K
-```
+<img width="1229" height="147" alt="image" src="https://github.com/user-attachments/assets/15e09438-4208-40ea-adde-7fbbcf43f782" />
+
 
 ### RAG-Token
 - 출력 토큰마다 **다른 문서**를 참고할 수 있음
 - 여러 문서에서 정보를 조합해 답변 생성 가능 → 더 유연함
 
-```
-p_RAG-Tok(y|x) ≈ Π Σ p(z|x) · p(yᵢ|x, z, y₁:ᵢ₋₁)
-                  i  z∈top-K
-```
+<img width="972" height="121" alt="image" src="https://github.com/user-attachments/assets/f06f49b9-9d01-44e8-b11a-908d36c4e904" />
 
 > **언제 어떤 걸 쓰나?**
 > - 단순 QA → RAG-Sequence가 유리한 경우 多
@@ -191,4 +188,4 @@ Wikipedia Dump      →  사내 문서, PDF, 웹페이지 등 커스텀 문서
 ## 참고
 
 - 원논문: https://arxiv.org/abs/2005.11401
-- HuggingFace 공식 구현: https://github.com/huggingface/transformers/tree/master/examples/rag
+- HuggingFace 공식 구현: https://github.com/huggingface/transformers/tree/main/src/transformers/models/rag
