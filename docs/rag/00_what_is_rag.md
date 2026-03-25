@@ -141,4 +141,4 @@ Self-RAG, Corrective RAG 등이 여기에 속함.
 
 - [Ragas 공식 문서](https://docs.ragas.io/en/stable/)
 - [LangChain RAG 튜토리얼](https://python.langchain.com/docs/tutorials/rag/)
-- [Lewis et al. (2020) - RAG 원논문](https://arxiv.org/abs/2005.11401)
+- [Lewis et al. (2020) - RAG 원논문](https://arxiv.org/abs/2005.11401) [(논문 정리본)](https://github.com/Yun-Jinwoo/rag-study/blob/main/docs/rag/02_rag_original_paper.md)
