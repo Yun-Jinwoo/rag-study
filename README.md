@@ -6,6 +6,9 @@ RAG(Retrieval-Augmented Generation) 및 관련 기술 스택 정리
 |------|------|
 | [00_what_is_rag.md](docs/rag/00_what_is_rag.md) | RAG 개념, 동작 원리, 세대 분류 |
 | [01_pipeline_components.md](docs/rag/01_pipeline_components.md) | 파이프라인 구성요소 상세 정리 |
+| [02_rag_original_paper.md](docs/rag/02_rag_original_paper.md) | RAG 원논문 정리 (Lewis et al. 2020) |
+| [03_embedding_study.md](docs/rag/03_embedding_study.md) | 임베딩 모델 개념 및 OpenAI vs BGE-M3 비교 |
+| [04_vectordb_study.md](docs/rag/04_vectordb_study.md) | FAISS / ChromaDB 개념 및 활용법 |
 
 ### 📐 Ragas
 | 파일 | 내용 |
