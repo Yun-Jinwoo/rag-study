@@ -9,6 +9,7 @@ RAG(Retrieval-Augmented Generation) 및 관련 기술 스택 정리
 | [02_rag_original_paper.md](docs/rag/02_rag_original_paper.md) | RAG 원논문 정리 (Lewis et al. 2020) |
 | [03_embedding_study.md](docs/rag/03_embedding_study.md) | 임베딩 모델 개념 및 OpenAI vs BGE-M3 비교 |
 | [04_vectordb_study.md](docs/rag/04_vectordb_study.md) | FAISS / ChromaDB 개념 및 활용법 |
+| [05_rag_pipeline_test.md](docs/rag/05_rag_pipeline_test.md) | BGE-M3 + ChromaDB + LangChain RAG 파이프라인 테스트 |
 
 ### 📐 Ragas
 | 파일 | 내용 |
