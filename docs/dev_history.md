@@ -4,21 +4,34 @@
 
 ---
 
-## 최종 아키텍처
+## 시스템 구조도
 
+### 데이터 파이프라인
+
+```mermaid
+flowchart LR
+    A1[e약은요 API] --> F[fetch_drug_data.py]
+    A2[낱알식별 API] --> F
+    A3[주성분 API] --> F
+    F --> J[drug_data.json]
+    J --> B[build_documents.py]
+    B --> D[drug_documents.json]
+    D --> E[(ChromaDB\nBGE-M3 임베딩)]
 ```
-사용자 질문
-    ↓
-Query Expansion (GPT-4o-mini)
-    ↓ 원본 + 2개 확장 쿼리
-ChromaDB 검색 (BGE-M3 임베딩)
-    ↓ 중복 제거 후 상위 5개 문서
-LangChain 체인
-    [system prompt + few-shot examples + 문서 컨텍스트 + 질문]
-    ↓
-GPT-4o-mini
-    ↓
-최종 답변
+
+### QnA 파이프라인
+
+```mermaid
+flowchart TD
+    U[사용자 질문] --> QE[Query Expansion
+    GPT-4o-mini]
+    QE --> |원본 + 확장 쿼리 3개| DB[(ChromaDB
+    BGE-M3)]
+    DB --> |중복 제거 후 상위 5개 문서| LC[LangChain 체인]
+    SP[System Prompt
+    + Few-shot 예시] --> LC
+    LC --> LLM[GPT-4o-mini]
+    LLM --> ANS[최종 답변]
 ```
 
 ---
