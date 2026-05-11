@@ -12,8 +12,9 @@ import chromadb
 from dotenv import load_dotenv
 from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 from langchain_openai import ChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 from langchain_core.output_parsers import StrOutputParser
+from langchain_core.messages import HumanMessage, AIMessage
 from prompts.system_prompt import SYSTEM_PROMPT, FEW_SHOT_EXAMPLES
 
 load_dotenv()
@@ -48,7 +49,7 @@ else:
 
 
 # 2. LLM 설정
-llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+llm = ChatOpenAI(model="gpt-4.1", temperature=0)
 
 
 # 3. Query Expansion
@@ -105,26 +106,83 @@ for example in FEW_SHOT_EXAMPLES:
 prompt = ChatPromptTemplate.from_messages([
     ("system", SYSTEM_PROMPT),
     *few_shot_messages,
+    MessagesPlaceholder(variable_name="chat_history"),  # 대화 기록 주입
     ("human", "[의약품 정보]\n{context}\n\n[사용자 질문]\n{question}")
 ])
 
 chain = prompt | llm | StrOutputParser()
 
 
-# 6. QnA 실행 함수
+# 6. QnA 실행 함수 (단일 턴 - 시나리오 테스트용)
 def ask(question: str):
     print(f"\n{'─' * 60}")
     print(f"🙋 질문: {question}")
     print(f"{'─' * 60}")
 
     context = retriever_multi(question)
-    answer = chain.invoke({"context": context, "question": question})
+    answer = chain.invoke({"context": context, "question": question, "chat_history": []})
 
     print(answer)
     print()
 
 
-# 7. 실행 모드 선택
+# 7. 역질문 응답 감지 함수
+# 프롬프트에서 정의한 정보 수집 질문 패턴 → 답변 후 검색 스킵
+INFO_QUESTION_PATTERNS = ["나이가", "임산부", "임신 중", "복용 중이"]
+
+def is_followup_response(chat_history: list) -> bool:
+    """직전 AI 메시지가 정보 수집 역질문이면 True → 검색 스킵
+    증상 확인 질문(소화불량인가요? 등)은 False → 검색 실행
+    """
+    if not chat_history:
+        return False
+    last_ai = chat_history[-1].content.strip()
+    if not last_ai.endswith("요?"):
+        return False
+    return any(kw in last_ai for kw in INFO_QUESTION_PATTERNS)
+
+
+# 8. 멀티턴 대화 루프 (역질문 지원)
+def run_chat():
+    print("\n질문을 입력하세요. 종료하려면 'q' 또는 'quit'을 입력하세요.")
+    print("대화를 초기화하려면 'clear'를 입력하세요.\n")
+
+    chat_history = []  # [HumanMessage, AIMessage, ...] 순서로 누적
+
+    while True:
+        question = input("🙋 나: ").strip()
+        if not question:
+            continue
+        if question.lower() in ("q", "quit"):
+            print("\n종료합니다.")
+            break
+        if question.lower() == "clear":
+            chat_history = []
+            print("─" * 60)
+            print("대화 기록이 초기화되었습니다.")
+            print("─" * 60)
+            continue
+
+        # 역질문 응답이면 검색 스킵, 아니면 ChromaDB 검색
+        if is_followup_response(chat_history):
+            context = ""
+        else:
+            context = retriever_multi(question)
+
+        answer = chain.invoke({
+            "context": context,
+            "question": question,
+            "chat_history": chat_history
+        })
+
+        print(f"\n👨 약사 AI: {answer}\n")
+
+        # 대화 기록에 이번 턴 추가
+        chat_history.append(HumanMessage(content=question))
+        chat_history.append(AIMessage(content=answer))
+
+
+# 9. 실행 모드 선택
 if __name__ == "__main__":
     print("=" * 60)
     print("  의약품 RAG QnA - Query Expansion 버전")
@@ -137,16 +195,18 @@ if __name__ == "__main__":
 
     if mode == "1":
         scenarios = [
-            "임산부인데 두통이 심해요. 처방전 없이 먹을 수 있는 약 있나요?",
-            "8살 아이가 감기로 열이 나요. 어린이용 해열제 추천해주세요.",
-            "운동하고 나서 근육이 너무 아파요. 성인용 진통 소염제 알려주세요.",
-            "과식해서 소화가 안 돼요. 더부룩하고 배가 불편합니다.",
-            "위산이 역류하는 것 같고 속이 쓰려요. 제산제 추천해주세요.",
-            "콧물, 기침, 인후통이 같이 있어요. 감기약 추천해주세요.",
-            "두드러기가 나고 가려워요. 알러지 증상에 먹는 약이 있나요?",
-            "피부에 상처가 났는데 세균 감염이 걱정돼요. 바르는 약 추천해주세요.",
-            "생리통이 너무 심해요. 여성 월경통에 효과 있는 약이 뭔가요?",
-            "눈이 피로하고 충혈됐어요. 안약 추천해주세요.",
+            # 진통제
+            "두통이 있는데 진통제 추천해주세요.",                                          # 1. 일반 성인 두통
+            "임산부인데 두통이 너무 심해요. 먹을 수 있는 약이 있나요?",                    # 2. 임산부 두통
+            "생리통이 너무 심한데 효과 좋은 약 추천해주세요.",                              # 3. 생리통
+            "두통이 심한데 게보린 먹어도 되나요?",                                         # 4. 게보린 문의 (성인)
+            "임산부인데 게보린 먹어도 될까요?",                                            # 5. 게보린 문의 (임산부)
+            "14살인데 두통이 너무 심해요. 약 추천해주세요.",                               # 6. 15세 미만 두통
+            # 알러지
+            "갑자기 두드러기가 나고 너무 가려워요. 먹는 약 있나요?",                       # 7. 일반 두드러기
+            "임산부인데 두드러기가 심하게 났어요. 약 먹어도 될까요?",                      # 8. 임산부 알러지
+            "5살 아이한테 두드러기가 났어요. 먹는 약 줄 수 있나요?",                       # 9. 소아 알러지
+            "지르텍이랑 클리어딘 중에 어떤 게 더 나아요?",                                # 10. 지르텍 vs 클리어딘
         ]
         for question in scenarios:
             ask(question)
@@ -156,15 +216,7 @@ if __name__ == "__main__":
         print("=" * 60)
 
     elif mode == "2":
-        print("\n질문을 입력하세요. 종료하려면 'q' 또는 'quit'을 입력하세요.\n")
-        while True:
-            question = input("🙋 질문: ").strip()
-            if not question:
-                continue
-            if question.lower() in ("q", "quit"):
-                print("\n종료합니다.")
-                break
-            ask(question)
+        run_chat()
 
     else:
         print("잘못된 입력입니다. 1 또는 2를 선택하세요.")
